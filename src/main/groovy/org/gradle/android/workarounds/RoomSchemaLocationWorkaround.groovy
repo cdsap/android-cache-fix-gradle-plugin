@@ -223,43 +223,6 @@ class RoomSchemaLocationWorkaround implements Workaround {
             // maps annotation processor providers from the variant directly onto kapt tasks.
             javaCompileSchemaGenerationEnabled = false
         }
-
-
-        // Ksp Workaround implementation. Based on Kapt workaround
-        project.plugins.withId("com.google.devtools.ksp") {
-
-            // Ksp doesn't delegate to javac like kapt, we can use the task provider
-            project.tasks.withType(kspTaskClass).configureEach {
-
-                // Adding the Ksp CommandLineArgument with variant and room extension
-                def variantSpecificSchemaDir = project.objects.directoryProperty()
-                variantSpecificSchemaDir.set(getVariantSpecificSchemaDir(project, it.name))
-                it.commandLineArgumentProviders.add(new KspRoomSchemaLocationArgumentProvider(roomExtension.schemaLocationDir, variantSpecificSchemaDir))
-
-                def commandLineArgumentProviders = getAccessibleField(it.class, "__commandLineArgumentProviders__").get(it)
-
-                // We need to generate the schemas to a temporary directory and then copy them to the registered
-                // output directory.
-                doFirst onlyIfAnnotationProcessorConfiguredForKsp(commandLineArgumentProviders) { KspRoomSchemaLocationArgumentProvider provider ->
-                    RoomSchemaLocationWorkaround.copyExistingSchemasToTaskSpecificTmpDirForKsp(fileOperations, roomExtension.schemaLocationDir, provider)
-                }
-
-                doLast onlyIfAnnotationProcessorConfiguredForKsp(commandLineArgumentProviders) { KspRoomSchemaLocationArgumentProvider provider ->
-                    RoomSchemaLocationWorkaround.copyGeneratedSchemasToOutputDirForKsp(fileOperations, provider)
-                }
-
-                finalizedBy onlyIfAnnotationProcessorConfiguredForKsp(commandLineArgumentProviders) { roomExtension.schemaLocationDir.isPresent() ? mergeTask : null }
-
-                TaskExecutionGraph taskGraph = project.gradle.taskGraph
-
-                taskGraph.whenReady onlyIfAnnotationProcessorConfiguredForKsp(commandLineArgumentProviders) { KspRoomSchemaLocationArgumentProvider provider ->
-                    if (taskGraph.hasTask(it)) {
-                        roomExtension.registerOutputDirectory(provider.schemaLocationDir)
-                    }
-                }
-            }
-        }
-
     }
 
     private static void errorIfRoomSchemaAnnotationArgumentSet(Set<String> options) {
@@ -283,15 +246,6 @@ class RoomSchemaLocationWorkaround implements Workaround {
     private static Closure onlyIfAnnotationProcessorConfiguredForKapt(def annotationProcessorOptionProviders, Closure<?> action) {
         return {
             def provider = annotationProcessorOptionProviders.flatten().find { it instanceof KaptRoomSchemaLocationArgumentProvider }
-            if (provider != null) {
-                action.call(provider)
-            }
-        }
-    }
-
-    private static Closure onlyIfAnnotationProcessorConfiguredForKsp(def commandLineArgumentProviders, Closure<?> action) {
-        return {
-            def provider = commandLineArgumentProviders.get().find { it instanceof KspRoomSchemaLocationArgumentProvider }
             if (provider != null) {
                 action.call(provider)
             }
@@ -360,29 +314,11 @@ class RoomSchemaLocationWorkaround implements Workaround {
         copyExistingSchemasToTaskSpecificTmpDir(fileOperations, existingSchemaDir, temporaryVariantSpecificSchemaDir)
     }
 
-    private static void copyExistingSchemasToTaskSpecificTmpDirForKsp(FileOperations fileOperations, Provider<Directory> existingSchemaDir, KspRoomSchemaLocationArgumentProvider provider) {
-        // Derive the variant directory from the command line provider it is configured with
-        def temporaryVariantSpecificSchemaDir = provider.temporarySchemaLocationDir
-
-        // Populate the variant-specific temporary schema dir with the existing schemas
-        copyExistingSchemasToTaskSpecificTmpDir(fileOperations, existingSchemaDir, temporaryVariantSpecificSchemaDir)
-    }
-
     private static void copyGeneratedSchemasToOutputDirForKapt(FileOperations fileOperations, KaptRoomSchemaLocationArgumentProvider provider) {
         // Copy the generated generated schemas from the task-specific tmp dir to the
         // task-specific output dir.  This dance prevents the kapt task from clearing out
         // the existing schemas before the annotation processors run
         // Derive the variant directory from the command line provider it is configured with
-        def variantSpecificSchemaDir = provider.schemaLocationDir
-        def temporaryVariantSpecificSchemaDir = provider.temporarySchemaLocationDir
-
-        fileOperations.sync {
-            it.from temporaryVariantSpecificSchemaDir
-            it.into variantSpecificSchemaDir
-        }
-    }
-
-    private static void copyGeneratedSchemasToOutputDirForKsp(FileOperations fileOperations, KspRoomSchemaLocationArgumentProvider provider) {
         def variantSpecificSchemaDir = provider.schemaLocationDir
         def temporaryVariantSpecificSchemaDir = provider.temporarySchemaLocationDir
 
@@ -413,10 +349,6 @@ class RoomSchemaLocationWorkaround implements Workaround {
 
     static Class<?> getKaptWithKotlincTaskClass() {
         return Class.forName("org.jetbrains.kotlin.gradle.internal.KaptWithKotlincTask")
-    }
-
-    static Class<?> getKspTaskClass() {
-        return Class.forName("com.google.devtools.ksp.gradle.KspTaskJvm")
     }
 
     static VersionNumber getKotlinVersion() {
@@ -467,12 +399,7 @@ class RoomSchemaLocationWorkaround implements Workaround {
         @Override
         Iterable<String> asArguments() {
             if (configuredSchemaLocationDir.isPresent()) {
-               if(this instanceof KspRoomSchemaLocationArgumentProvider) {
-                   return ["${ROOM_SCHEMA_LOCATION}=${schemaLocationPath}" as String]
-               }else {
-                   return ["-A${ROOM_SCHEMA_LOCATION}=${schemaLocationPath}" as String]
-               }
-
+                return ["-A${ROOM_SCHEMA_LOCATION}=${schemaLocationPath}" as String]
             } else {
                 return []
             }
@@ -504,20 +431,6 @@ class RoomSchemaLocationWorkaround implements Workaround {
             return temporarySchemaLocationDir.get().asFile.absolutePath
         }
     }
-
-    static class KspRoomSchemaLocationArgumentProvider extends RoomSchemaLocationArgumentProvider {
-    private Provider<Directory> temporarySchemaLocationDir
-
-    KspRoomSchemaLocationArgumentProvider(Provider<Directory> configuredSchemaLocationDir, Provider<Directory> schemaLocationDir) {
-        super(configuredSchemaLocationDir, schemaLocationDir)
-        this.temporarySchemaLocationDir = schemaLocationDir.map { it.dir("../${it.asFile.name}Temp") }
-    }
-
-    @Override
-    protected String getSchemaLocationPath() {
-        return temporarySchemaLocationDir.get().asFile.absolutePath
-    }
-}
 
     static class MergeAssociations {
         final ObjectFactory objectFactory
