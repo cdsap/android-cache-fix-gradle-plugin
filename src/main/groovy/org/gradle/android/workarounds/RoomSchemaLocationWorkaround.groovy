@@ -467,9 +467,9 @@ class RoomSchemaLocationWorkaround implements Workaround {
         @Override
         Iterable<String> asArguments() {
             if (configuredSchemaLocationDir.isPresent()) {
-               if(this instanceof KspRoomSchemaLocationArgumentProvider) {
+               if (this instanceof KspRoomSchemaLocationArgumentProvider) {
                    return ["${ROOM_SCHEMA_LOCATION}=${schemaLocationPath}" as String]
-               }else {
+               } else {
                    return ["-A${ROOM_SCHEMA_LOCATION}=${schemaLocationPath}" as String]
                }
 

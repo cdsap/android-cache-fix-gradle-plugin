@@ -198,7 +198,7 @@ class SimpleAndroidApp {
     private String getRoomLibraryIfEnabled() {
         return (roomConfiguration != RoomConfiguration.NO_LIBRARY) ? """
                 implementation "androidx.room:room-runtime:${ROOM_LIBRARY_VERSION}"
-                annotationProcessor "androidx.room:room-compiler:${ROOM_LIBRARY_VERSION}"
+                ${roomDependencyIfEnabled}
         """ : ""
     }
 
@@ -225,7 +225,6 @@ class SimpleAndroidApp {
         if (kotlinEnabled && kspEnabled) {
             return """
             apply plugin: "kotlin-android"
-            apply plugin: "kotlin-kapt"
             apply plugin: "com.google.devtools.ksp"
         """
         } else if (kotlinEnabled) {
@@ -250,7 +249,6 @@ class SimpleAndroidApp {
 
     private String getKotlinDependenciesIfEnabled() {
         return kotlinEnabled ? """
-            ${roomDependencyIfEnabled}
             implementation "org.jetbrains.kotlin:kotlin-stdlib"
         """ : ""
     }
@@ -258,8 +256,12 @@ class SimpleAndroidApp {
     private String getRoomDependencyIfEnabled() {
         if (kspEnabled) {
             return kspRoomDependencyIfEnabled
-        } else {
+        } else if(kotlinEnabled) {
             return kaptRoomDependencyIfEnabled
+        } else {
+            return """
+               annotationProcessor "androidx.room:room-compiler:${ROOM_LIBRARY_VERSION}"
+            """
         }
     }
 
