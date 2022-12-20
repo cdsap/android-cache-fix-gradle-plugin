@@ -4,6 +4,7 @@ import org.gradle.android.AndroidIssue
 import org.gradle.android.VersionNumber
 import org.gradle.android.workarounds.room.JavaCompileWorkaround
 import org.gradle.android.workarounds.room.KaptWorkaround
+import org.gradle.android.workarounds.room.KspWorkaround
 import org.gradle.android.workarounds.room.RoomExtension
 import org.gradle.android.workarounds.room.task.RoomSchemaLocationMergeTask
 import org.gradle.api.Project
@@ -66,6 +67,10 @@ class RoomSchemaLocationWorkaround implements Workaround {
         project.plugins.withId("kotlin-kapt") {
             KaptWorkaround.create(project, roomExtension, mergeTask)
             javaCompileRoomTask.javaCompileSchemaGenerationEnabled = false
+        }
+
+        project.plugins.withId("com.google.devtools.ksp") {
+            KspWorkaround.create(project, roomExtension, mergeTask)
         }
     }
 
