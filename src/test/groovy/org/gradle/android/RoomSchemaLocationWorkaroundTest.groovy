@@ -323,6 +323,74 @@ class RoomSchemaLocationWorkaroundTest extends AbstractTest {
     }
 
     @Unroll
+    def "schemas are generated with Ksp into task-specific directory and are cacheable with kotlin and kapt workers enabled (Android #androidVersion) (Kotlin #kotlinVersion)"() {
+        def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+        // There are kotlin module version errors when using older versions of kotlin with AGP 7.2.0+ in this configuration
+        Assume.assumeFalse(androidVersion >= VersionNumber.parse("7.2.0-alpha01") && kotlinVersionNumber < VersionNumber.parse("1.5.0"))
+
+        SimpleAndroidApp.builder(temporaryFolder.root, cacheDir)
+            .withAndroidVersion(androidVersion)
+            .withKotlinVersion(VersionNumber.parse(kotlinVersion))
+            .withKsp()
+            .build()
+            .writeProject()
+
+        cacheDir.deleteDir()
+        cacheDir.mkdirs()
+
+        when:
+        BuildResult buildResult = withGradleVersion(TestVersions.latestSupportedGradleVersionFor(androidVersion).version)
+            .forwardOutput()
+            .withProjectDir(temporaryFolder.root)
+            .withArguments(CLEAN_BUILD)
+            .build()
+
+        then:
+        assertCompileTasksHaveOutcome(buildResult, SUCCESS)
+        assertCompileAndroidTestTasksHaveOutcome(buildResult, SUCCESS)
+        assertCompileUnitTestTasksHaveOutcome(buildResult, SUCCESS)
+        assertKspTasksHaveOutcome(buildResult, SUCCESS)
+        assertKspAndroidTestTasksHaveOutcome(buildResult, SUCCESS)
+        assertKspUnitTestTasksHaveOutcome(buildResult, SUCCESS)
+        buildResult.task(':app:mergeRoomSchemaLocations').outcome == SUCCESS
+        buildResult.task(':library:mergeRoomSchemaLocations').outcome == SUCCESS
+
+        and:
+        assertKspSchemaOutputsExist()
+
+        and:
+        assertMergedSchemaOutputsExist()
+
+        when:
+        buildResult = withGradleVersion(TestVersions.latestSupportedGradleVersionFor(androidVersion).version)
+            .forwardOutput()
+            .withProjectDir(temporaryFolder.root)
+            .withArguments(CLEAN_BUILD)
+            .build()
+
+        then:
+        assertCompileTasksHaveOutcome(buildResult, FROM_CACHE)
+        assertCompileAndroidTestTasksHaveOutcome(buildResult, FROM_CACHE)
+        assertCompileUnitTestTasksHaveOutcome(buildResult, FROM_CACHE)
+        assertKspTasksHaveOutcome(buildResult, FROM_CACHE)
+        assertKspAndroidTestTasksHaveOutcome(buildResult, FROM_CACHE)
+        assertKspUnitTestTasksHaveOutcome(buildResult, FROM_CACHE)
+        buildResult.task(':app:mergeRoomSchemaLocations').outcome == SUCCESS
+        buildResult.task(':library:mergeRoomSchemaLocations').outcome == SUCCESS
+
+        and:
+        assertKspSchemaOutputsExist()
+
+        and:
+        assertMergedSchemaOutputsExist()
+
+        where:
+        //noinspection GroovyAssignabilityCheck
+        [androidVersion, kotlinVersion] << [TestVersions.latestAndroidVersions, TestVersions.supportedKotlinVersions].combinations()
+    }
+
+
+    @Unroll
     def "schemas are correctly generated with Ksp when only one variant is built incrementally  (Android #androidVersion)"() {
         SimpleAndroidApp.builder(temporaryFolder.root, cacheDir)
             .withAndroidVersion(androidVersion)
