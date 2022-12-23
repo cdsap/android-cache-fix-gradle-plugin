@@ -233,7 +233,7 @@ class SimpleAndroidApp {
     }
 
     private String getRoomDependencyIfEnabled() {
-        if(kotlinEnabled) {
+        if (kotlinEnabled) {
             return kaptRoomDependencyIfEnabled
         } else {
             return """
