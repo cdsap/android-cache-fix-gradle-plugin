@@ -33,7 +33,6 @@ class KspWorkaround extends AnnotationProcessorWorkaround<KspRoomSchemaLocationA
 
         task.doFirst onlyIfSymbolProcessorConfiguredForKsp(task.commandLineArgumentProviders) { KspRoomSchemaLocationArgumentProvider provider ->
             copyExistingSchemasToTaskSpecificTmpDir(roomExtension.schemaLocationDir, provider)
-
         }
 
         task.doLast onlyIfSymbolProcessorConfiguredForKsp(task.commandLineArgumentProviders) { KspRoomSchemaLocationArgumentProvider provider ->
