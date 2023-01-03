@@ -1,8 +1,6 @@
-name: Verify Build
+name: Verify Build2
 
-on:
-  pull_request_target:
-    types: [ opened ]
+on: [ push, pull_request, workflow_dispatch ]
 
 jobs:
   generate_versions:
