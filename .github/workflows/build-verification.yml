@@ -3,7 +3,7 @@ name: Verify Build
 on:
   push:
     branches: [ main, citest ]
-  pull_request:
+  pull_request_target:
     branches: [ main ]
   workflow_dispatch:
 
