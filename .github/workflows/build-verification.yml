@@ -9,7 +9,7 @@ on:
 
 jobs:
   generate_versions:
-    name: Generate versions
+    name: Generate versionsk
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
