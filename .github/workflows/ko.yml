@@ -1,8 +1,11 @@
-name: Verify Build
+name: Verify Build2
 
 on:
-  pull_request_target:
-    types: [ opened ]
+  push:
+    branches: [ main, citest ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   generate_versions:
