@@ -2,8 +2,7 @@ name: Verify Build
 
 on:
   pull_request_target:
-    branches: [ main, citest ]
-  workflow_dispatch:
+    types: [ opened ]
 
 jobs:
   generate_versions:
