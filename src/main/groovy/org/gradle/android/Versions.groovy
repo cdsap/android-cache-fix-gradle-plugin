@@ -21,9 +21,10 @@ class Versions {
 
     static {
         def versions = new JsonSlurper().parse(AndroidCacheFixPlugin.classLoader.getResource("versions.json"))
+        def versions17 = new JsonSlurper().parse(AndroidCacheFixPlugin.classLoader.getResource("versions_java17.json"))
 
         def builder = ImmutableMultimap.<VersionNumber, GradleVersion>builder()
-        versions.supportedVersions.each { String androidVersion, List<String> gradleVersions ->
+        (versions + versions17) .supportedVersions.each { String androidVersion, List<String> gradleVersions ->
             builder.putAll(android(androidVersion), gradleVersions.collect { gradle(it) })
         }
         def matrix = builder.build()
