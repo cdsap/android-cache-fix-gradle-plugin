@@ -25,8 +25,47 @@ jobs:
       matrix: ${{ steps.setup-matrix.outputs.matrix }}
       matrix-java17: ${{ steps.setup-matrix-java-17.outputs.matrix }}
 
-
-
+  android_version_tests:
+    name: Android version tests
+    needs: [ generate_versions, sanity_check ]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+      versions: ${{ fromJson(needs.generate_versions.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Patch api-versions
+        run: sudo test -f $ANDROID_HOME/platform-tools/api/api-versions.xml || (sudo mkdir $ANDROID_HOME/platform-tools/api && sudo cp .github/api-versions.xml $ANDROID_HOME/platform-tools/api/api-versions.xml)
+      - name: List Android Packages
+        run: sudo $ANDROID_HOME/tools/bin/sdkmanager --list | sed -n '/Available Packages/q;p'
+      - name: Setup ZULU_JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: 11.0.12
+          distribution: 'zulu'
+      - name: Set ZULU_JDK environment variable
+        run: |
+             echo "ZULU_JDK=$JAVA_HOME" >> $GITHUB_ENV
+      - name: Setup ZULU_ALT_JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: 11.0.13
+          distribution: 'zulu'
+      - name: Set ZULU_ALT_JDK environment variable
+        run: |
+             echo "ZULU_ALT_JDK=$JAVA_HOME" >> $GITHUB_ENV
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 11
+          distribution: 'adopt'
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+      - name: Run integration tests
+        run: ./gradlew testAndroid${{ matrix.versions }} -x signPluginMavenPublication -x signAndroidCacheFixPluginPluginMarkerMavenPublication
+        env:
+          GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GE_SOLUTIONS_ACCESS_TOKEN }}
   android_version_tests_java_17:
     name: Android version tests Java 17
     needs: [ generate_versions ]
