@@ -259,6 +259,8 @@ gradleEnterprise {
     }
 
     private String getToolchainConfigurationIfEnabled() {
+println("paso")
+        println(toolchainVersion)
         return (toolchainVersion != null) ? """
             java {
                 toolchain {
