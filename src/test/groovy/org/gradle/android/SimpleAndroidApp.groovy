@@ -83,6 +83,12 @@ gradleEnterprise {
                         ${kotlinPluginDependencyIfEnabled}
                     }
                 }
+
+   java {
+                toolchain {
+                    languageVersion.set(JavaLanguageVersion.of(${toolchainVersion}))
+                }
+            }
             """.stripIndent()
         if (kotlinEnabled) {
             writeKotlinClass(library, libPackage, libraryActivity)
