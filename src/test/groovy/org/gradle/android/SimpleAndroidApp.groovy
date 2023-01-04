@@ -83,7 +83,14 @@ gradleEnterprise {
                         ${kotlinPluginDependencyIfEnabled}
                     }
                 }
-
+plugins {
+   id("java")
+}
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
 
             """.stripIndent()
         if (kotlinEnabled) {
