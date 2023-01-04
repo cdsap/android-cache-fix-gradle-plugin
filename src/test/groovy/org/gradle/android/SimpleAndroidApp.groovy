@@ -51,7 +51,7 @@ class SimpleAndroidApp {
 
 gradleEnterprise {
    server = "https://ge.solutions-team.gradle.com"
-   accessKey = "${System.getenv("GRADLE_ENTERPRISE_ACCESS_KEY").replace("ge.solutions-team.gradle.com=","")}"
+   accessKey = "${System.getenv("GRADLE_ENTERPRISE_ACCESS_KEY").replace("ge.solutions-team.gradle.com=", "")}"
 
    allowUntrustedServer = true
 
@@ -83,14 +83,7 @@ gradleEnterprise {
                         ${kotlinPluginDependencyIfEnabled}
                     }
                 }
-plugins {
-   id("java")
-}
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
+                ${toolchainInCaseOfJava17}
 
             """.stripIndent()
         if (kotlinEnabled) {
@@ -173,6 +166,23 @@ java {
 
     static String getLocalRepo() {
         return Paths.get(System.getProperty("local.repo")).toUri()
+    }
+
+    private String getToolchainInCaseOfJava17() {
+        if (System.getenv("JAVA_17_AGENT") != null && System.getenv("JAVA_17_AGENT") == "true") {
+            return """
+             plugins {
+                id("java")
+            }
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(17)
+                }
+            }
+            """
+        } else {
+            return ""
+        }
     }
 
     private String getKotlinPluginDependencyIfEnabled() {
@@ -268,7 +278,7 @@ java {
     }
 
     private String getToolchainConfigurationIfEnabled() {
-println("paso")
+        println("paso")
         println(toolchainVersion)
         return (toolchainVersion != null) ? """
             java {
