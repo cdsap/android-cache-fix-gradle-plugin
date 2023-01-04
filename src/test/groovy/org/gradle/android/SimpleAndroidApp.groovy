@@ -83,12 +83,16 @@ gradleEnterprise {
                         ${kotlinPluginDependencyIfEnabled}
                     }
                 }
+plugins {
+   id("java")
+}
+java {
+    toolchain {
+        // AGP 7+ only supports JDK 11+
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
 
-   java {
-                toolchain {
-                    languageVersion.set(JavaLanguageVersion.of(${toolchainVersion}))
-                }
-            }
             """.stripIndent()
         if (kotlinEnabled) {
             writeKotlinClass(library, libPackage, libraryActivity)
