@@ -622,6 +622,7 @@ gradleEnterprise {
         }
 
         SimpleAndroidApp build() {
+            toolchainVersion = "17"
             return new SimpleAndroidApp(projectDir, cacheDir, androidVersion, kotlinVersion, dataBindingEnabled, kotlinEnabled, kaptWorkersEnabled, roomConfiguration, toolchainVersion, sourceCompatibility)
         }
     }
