@@ -27,12 +27,12 @@ jobs:
 
   android_version_tests:
     name: Android version tests
-    needs: [ generate_versions, sanity_check ]
+    needs: [ generate_versions]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-      versions: ${{ fromJson(needs.generate_versions.outputs.matrix) }}
+        versions: ${{ fromJson(needs.generate_versions.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
       - name: Patch api-versions
@@ -66,6 +66,7 @@ jobs:
         run: ./gradlew testAndroid${{ matrix.versions }} -x signPluginMavenPublication -x signAndroidCacheFixPluginPluginMarkerMavenPublication
         env:
           GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GE_SOLUTIONS_ACCESS_TOKEN }}
+
   android_version_tests_java_17:
     name: Android version tests Java 17
     needs: [ generate_versions ]
