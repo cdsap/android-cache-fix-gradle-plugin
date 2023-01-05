@@ -85,8 +85,6 @@ gradleEnterprise {
                         ${kotlinPluginDependencyIfEnabled}
                     }
                 }
-                ${toolchainInCaseOfJava17}
-
             """.stripIndent()
         if (kotlinEnabled) {
             writeKotlinClass(library, libPackage, libraryActivity)
@@ -148,8 +146,8 @@ gradleEnterprise {
                 kapt.use.worker.api=${kaptWorkersEnabled}
                 android.experimental.enableSourceSetPathsMap=true
                 android.experimental.cacheCompileLibResources=true
-                org.gradle.java.home=${System.getenv("JAVA_HOME_AGENT")}
                 android.defaults.buildfeatures.renderscript=false
+                ${setJava17IfEnabled()}
             """.stripIndent()
 
         configureAndroidSdkHome()
@@ -171,23 +169,12 @@ gradleEnterprise {
         return Paths.get(System.getProperty("local.repo")).toUri()
     }
 
-    private String getToolchainInCaseOfJava17() {
-        if (System.getenv("JAVA_17_AGENT") != null && System.getenv("JAVA_17_AGENT") == "true") {
-            return """
-             plugins {
-                id("java")
-            }
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(17)
-                }
-            }
-            """
-        } else {
-            return ""
-        }
-    }
+    private String setJava17IfEnabled() {
+        return System.getenv("JAVA_HOME_AGENT") != null ? """
+               org.gradle.java.home=${System.getenv("JAVA_HOME_AGENT")}
+         """ : ""
 
+    }
     private String getKotlinPluginDependencyIfEnabled() {
         return kotlinEnabled ? """
             classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
@@ -281,9 +268,6 @@ gradleEnterprise {
     }
 
     private String getToolchainConfigurationIfEnabled() {
-        println("paso")
-        println(System.getenv("JAVA_HOME_AGENT"))
-        println(toolchainVersion)
         return (toolchainVersion != null) ? """
             java {
                 toolchain {
