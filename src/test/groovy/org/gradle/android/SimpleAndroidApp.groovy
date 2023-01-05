@@ -58,6 +58,8 @@ gradleEnterprise {
    buildScan {
        capture { taskInputFiles = true }
        publishAlways()
+
+       tag "${System.getenv("JAVA_HOME")}"
    }
 }
 
