@@ -103,6 +103,9 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
+      - name: Set jsva_home
+        run: |
+            echo $JAVA_HOME
       - name: Run integration tests Java 17
         run: ./gradlew testAndroid${{ matrix.versions }} --tests org.gradle.android.RoomSchemaLocationWorkaroundTest -x signPluginMavenPublication -x signAndroidCacheFixPluginPluginMarkerMavenPublication
         env:
