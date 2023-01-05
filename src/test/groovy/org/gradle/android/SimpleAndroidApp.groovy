@@ -148,7 +148,7 @@ gradleEnterprise {
                 kapt.use.worker.api=${kaptWorkersEnabled}
                 android.experimental.enableSourceSetPathsMap=true
                 android.experimental.cacheCompileLibResources=true
-                org.gradle.java.home=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.5-8/x64
+                org.gradle.java.home=${System.getenv("JAVA_HOME_AGENT")}
                 android.defaults.buildfeatures.renderscript=false
             """.stripIndent()
 
