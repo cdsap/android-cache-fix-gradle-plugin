@@ -105,10 +105,10 @@ jobs:
           distribution: 'temurin'
       - name: Set jsva_home
         run: |
-            echo $JAVA_HOME
+            echo "JAVA_HOME_AGENT=$JAVA_HOME" >> $GITHUB_ENV
       - name: Run integration tests Java 17
         run: ./gradlew testAndroid${{ matrix.versions }} --tests org.gradle.android.TaskAvoidanceTest -x signPluginMavenPublication -x signAndroidCacheFixPluginPluginMarkerMavenPublication
         env:
           GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GE_SOLUTIONS_ACCESS_TOKEN }}
           JAVA_17_AGENT: true
-          JAVA_HOME_AGENT: $JAVA_HOME
+
