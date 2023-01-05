@@ -111,3 +111,4 @@ jobs:
         env:
           GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GE_SOLUTIONS_ACCESS_TOKEN }}
           JAVA_17_AGENT: true
+          JAVA_HOME_AGENT: $JAVA_HOME
