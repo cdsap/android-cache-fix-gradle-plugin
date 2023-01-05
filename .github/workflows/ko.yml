@@ -76,6 +76,9 @@ jobs:
         with:
           java-version: 11
           distribution: 'adopt'
+      - name: Set jsva_home
+        run: |
+            echo "JAVA_HOME_AGENT=$JAVA_HOME" >> $GITHUB_ENV
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
       - name: Run integration tests
