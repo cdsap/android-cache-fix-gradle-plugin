@@ -79,7 +79,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
       - name: Run integration tests
-        run: ./gradlew testAndroid${{ matrix.versions }} --tests org.gradle.android.RoomSchemaLocationWorkaroundTest -x signPluginMavenPublication -x signAndroidCacheFixPluginPluginMarkerMavenPublication
+        run: ./gradlew testAndroid${{ matrix.versions }} --tests org.gradle.android.TaskAvoidanceTest -x signPluginMavenPublication -x signAndroidCacheFixPluginPluginMarkerMavenPublication
         env:
           GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GE_SOLUTIONS_ACCESS_TOKEN }}
 
@@ -107,7 +107,7 @@ jobs:
         run: |
             echo $JAVA_HOME
       - name: Run integration tests Java 17
-        run: ./gradlew testAndroid${{ matrix.versions }} --tests org.gradle.android.RoomSchemaLocationWorkaroundTest -x signPluginMavenPublication -x signAndroidCacheFixPluginPluginMarkerMavenPublication
+        run: ./gradlew testAndroid${{ matrix.versions }} --tests org.gradle.android.TaskAvoidanceTest -x signPluginMavenPublication -x signAndroidCacheFixPluginPluginMarkerMavenPublication
         env:
           GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GE_SOLUTIONS_ACCESS_TOKEN }}
           JAVA_17_AGENT: true
