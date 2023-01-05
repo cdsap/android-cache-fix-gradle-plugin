@@ -1,8 +1,7 @@
 {
     "supportedVersions": {
-        "7.4.0-rc03": [
+        "8.0.0-alpha10": [
             "7.6"
         ]
     }
 }
-

@@ -4,6 +4,7 @@ import com.android.Version
 import com.google.common.collect.ImmutableMultimap
 import com.google.common.collect.ImmutableSortedSet
 import com.google.common.collect.Multimap
+import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
@@ -21,13 +22,21 @@ class Versions {
 
     static {
         def versions = new JsonSlurper().parse(AndroidCacheFixPlugin.classLoader.getResource("versions.json"))
+        def versions17 = new JsonSlurper().parse(AndroidCacheFixPlugin.classLoader.getResource("versions_java17.json"))
+
 
         def builder = ImmutableMultimap.<VersionNumber, GradleVersion>builder()
+
         versions.supportedVersions.each { String androidVersion, List<String> gradleVersions ->
             builder.putAll(android(androidVersion), gradleVersions.collect { gradle(it) })
         }
+        versions17.supportedVersions.each { String androidVersion, List<String> gradleVersions ->
+            builder.putAll(android(androidVersion), gradleVersions.collect { gradle(it) })
+        }
+
         def matrix = builder.build()
 
+println(matrix)
         SUPPORTED_VERSIONS_MATRIX = matrix
         SUPPORTED_ANDROID_VERSIONS = ImmutableSortedSet.copyOf(matrix.keySet())
         SUPPORTED_GRADLE_VERSIONS = ImmutableSortedSet.copyOf(matrix.values())

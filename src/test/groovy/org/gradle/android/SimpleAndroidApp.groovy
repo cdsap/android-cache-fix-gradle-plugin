@@ -44,6 +44,23 @@ class SimpleAndroidApp {
         def libraryActivity = 'LibraryActivity'
 
         file("settings.gradle") << """
+      plugins {
+   id 'com.gradle.enterprise' version '3.11.4'
+   id 'com.gradle.common-custom-user-data-gradle-plugin' version '1.8.2'
+}
+
+gradleEnterprise {
+   server = "https://ge.solutions-team.gradle.com"
+   accessKey = "${System.getenv("GRADLE_ENTERPRISE_ACCESS_KEY").replace("ge.solutions-team.gradle.com=", "")}"
+
+   allowUntrustedServer = true
+
+   buildScan {
+       capture { taskInputFiles = true }
+       publishAlways()
+   }
+}
+
                 buildCache {
                     local {
                         directory = "${cacheDir.absolutePath.replace(File.separatorChar, '/' as char)}"
@@ -67,7 +84,10 @@ class SimpleAndroidApp {
                     }
                 }
             """.stripIndent()
-
+        if (kotlinEnabled) {
+            writeKotlinClass(library, libPackage, libraryActivity)
+            writeKotlinClass(app, appPackage, appActivity)
+        }
         writeActivity(library, libPackage, libraryActivity)
         writeRoomSourcesIfEnabled(library, libPackage)
         file("${library}/src/main/AndroidManifest.xml") << """<?xml version="1.0" encoding="utf-8"?>
@@ -120,11 +140,12 @@ class SimpleAndroidApp {
 
         file("gradle.properties") << """
                 android.useAndroidX=true
-                org.gradle.jvmargs=-Xmx2048m
+                org.gradle.jvmargs=-Xmx2048m -Dkotlin.daemon.jvm.options=-Xmx1500m
                 kapt.use.worker.api=${kaptWorkersEnabled}
                 android.experimental.enableSourceSetPathsMap=true
                 android.experimental.cacheCompileLibResources=true
                 android.defaults.buildfeatures.renderscript=false
+                ${setJava17IfEnabled()}
             """.stripIndent()
 
         configureAndroidSdkHome()
@@ -146,6 +167,12 @@ class SimpleAndroidApp {
         return Paths.get(System.getProperty("local.repo")).toUri()
     }
 
+    private String setJava17IfEnabled() {
+        return System.getenv("JAVA_HOME_AGENT") != null ? """
+               org.gradle.java.home=${System.getenv("JAVA_HOME_AGENT")}
+         """ : ""
+
+    }
     private String getKotlinPluginDependencyIfEnabled() {
         return kotlinEnabled ? """
             classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
@@ -259,6 +286,15 @@ class SimpleAndroidApp {
                 targetCompatibility JavaVersion.${sourceCompatibility.name()}
             }
         """ : ""
+    }
+
+    private writeKotlinClass(String basedir, String packageName, String className) {
+        file("${basedir}/src/main/kotlin/${packageName.replaceAll('\\.', '/')}/Foo.kt") << """
+                package ${packageName}
+
+                data class Foo(val label: String)
+
+            """.stripIndent()
     }
 
     private writeActivity(String basedir, String packageName, String className) {
@@ -593,6 +629,7 @@ class SimpleAndroidApp {
         }
 
         SimpleAndroidApp build() {
+            toolchainVersion = "17"
             return new SimpleAndroidApp(projectDir, cacheDir, androidVersion, kotlinVersion, dataBindingEnabled, kotlinEnabled, kaptWorkersEnabled, roomConfiguration, toolchainVersion, sourceCompatibility)
         }
     }
