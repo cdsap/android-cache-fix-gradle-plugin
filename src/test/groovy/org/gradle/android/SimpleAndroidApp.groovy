@@ -282,6 +282,7 @@ gradleEnterprise {
 
     private String getToolchainConfigurationIfEnabled() {
         println("paso")
+        println(System.getenv("JAVA_HOME_AGENT"))
         println(toolchainVersion)
         return (toolchainVersion != null) ? """
             java {
